@@ -1,3 +1,5 @@
+globalVariables(".")
+
 #' Resolve file or URL
 #' @keywords internal
 #'
@@ -24,9 +26,13 @@ download_if_url <- function(path) {
   }
 
   # Otherwise, first check if it had already been downloaded.
-  if (file.exists(basename(path))) return(basename(path))
+  if (file.exists(basename(path))) {
+    message(sprintf("Skipping download: file %s already exists", basename(path)))
+    return(basename(path))
+  }
 
   # If not already downloaded, download it.
+  message(sprintf("Downloading to %s...", basename(path)))
   download.file(path, basename(path), "auto")
 
   basename(path)
