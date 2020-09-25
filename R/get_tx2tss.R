@@ -33,9 +33,9 @@ get_tx2tss <- function(
   # From annotation_gtf_file, which has about 3 billion records and 27 fields,
   # filter for only transcript records, and only the fields we care about. We
   # end up with about 230,000 records.
-  gtf <- annotation_gtf_file %>%
+  gtf <- annotation_gtf_file %>%  # GTF is 1-based and inclusive at both ends.
     import() %>%
-    as_tibble() %>%
+    as_tibble() %>%  # also 1-based and inclusive at both ends.
     filter(.data$type == "transcript") %>%
     select(
       .data$seqnames, .data$start, .data$end, .data$width, .data$strand,
@@ -83,9 +83,8 @@ get_tx2tss <- function(
 
     }) %>%
     do.call(bind_rows, .)  # tibble of transcript_id, tss_id.
-  message()  #  just for a newline
+  message()  # just for the newline
 
   # for compatibility with sleuth
   tx2tss %>% rename(target_id=.data$transcript_id)
 }
-

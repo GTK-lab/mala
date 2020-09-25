@@ -1,4 +1,4 @@
-globalVariables(".")
+globalVariables(".")  # Oh, the joy of programming in R.
 
 #' Resolve file or URL
 #' @keywords internal
@@ -38,60 +38,68 @@ download_if_url <- function(path) {
   basename(path)
 }
 
-#' Warn if current bedtools version is older than recommended
+#' Decompress a gzipped tarball
 #' @keywords internal
 #'
-#' @param major Numeric 'x' part of x.y.z.
-#' @param minor Numeric 'y' part of x.y.z.
-#' @param patch Numeric 'z' part of x.y.z.
+#' @param path File path to gzipped tarball.
 #'
-#' @return TRUE if current version < major.minor.patch, FALSE otherwise.
-#'
-#' @details If TRUE, this function produces a warning using the warning function.
-#'
-#' @importFrom assertthat assert_that is.count
-#' @importFrom magrittr %>%
-#' @importFrom utils compareVersion
-warn_if_outdated_bedtools <- function(major=2, minor=28, patch=0) {
-  assert_that(is.count(major))
-  assert_that(is.count(minor))
-  assert_that(is.count(patch))
+#' @importFrom assertthat assert_that is.string is.dir
+#' @importFrom stringr str_extract
+#' @importFrom utils untar
+extract_if_targz <- function(path) {
+  assert_that(is.string(path))
 
-  version <- get_bedtools_version()
-  # Take advantage of an already implemented version comparison function.
-  version_current <- version %>%
-    { sprintf("%d.%d-%d", .[1], .[2], .[3]) }
-  version_recommended <- sprintf("%d.%d-%d", major, minor, patch)
-  is_outdated <- compareVersion(version_current, version_recommended) == -1
+  is_targz <- grepl("\\.tar\\.gz$", path)
+  dirn <- ifelse(is_targz, str_extract(path, ".*(?=\\.tar\\.gz$)"), path)
 
-  if (is_outdated) {
-    paste0(
-        "Using an outdated version of bedtools (v%d.%d.%d). ",
-        "v%d.%d.%d or higher is recommended.") %>%
-      sprintf(version[1], version[2], version[3], major, minor, patch) %>%
-      warning()
-  }
+  if (is_targz & !dir.exists(dirn)) {
+    message(sprintf("Extracting %s to %s...", path, dirn))
+    untar(path, exdir=dirn)
+  } else if (is_targz & dir.exists(dirn)) {
+    message(sprintf("Skip extracting %s, because %s exists", path, dirn))
+  } else { }  # !is_targz, so nothing to do.
 
-  is_outdated
+  assert_that(is.dir(dirn))
+  dirn
 }
 
-#' Get the current version of bedtools
-#' @keywords internal
+#' Convert sleuth results data.frame to GRanges
 #'
-#' @param command Command string which produces a bedtools version string.
+#' @param sr \code{data.frame} from \code{sleuth_results},
 #'
-#' @return Length-three numeric vector of major, minor, and patch versions
-#'   respectively.
+#' @return GRanges with qva, mean_obs, and target_id (usually a unique
+#'   TSS-associated ID) as metadata.
 #'
-#' @importFrom assertthat assert_that is.string
-#' @importFrom magrittr %>%
-#' @importFrom stringr str_extract_all
-get_bedtools_version <- function(command="bedtools --version") {
-  assert_that(is.string(command))
+#' @details Rows with \code{NA} qvals are dropped.
+#'
+#' @importFrom assertthat assert_that has_name not_empty
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr select
+#' @importFrom rlang .data
+#' @importFrom tidyr separate
+#' @importFrom GenomicRanges GRanges
+#' @importFrom S4Vectors Rle
+#' @importFrom IRanges IRanges
+sr2gr <- function(sr) {
 
-  command %>%
-    system(intern=TRUE) %>%
-    str_extract_all("\\d+") %>%
-    unlist() %>%  # str_extract_all gives length-1 list of length-3 vector
-    as.numeric()
+  assert_that(has_name(sr, "target_id"))
+  assert_that(has_name(sr, "qval"))
+  assert_that(has_name(sr, "mean_obs"))
+  assert_that(not_empty(sr))
+
+  sr %>%
+    as_tibble() %>%
+    select(.data$target_id, .data$qval, .data$mean_obs) %>%
+    filter(!is.na(.data$qval)) %>%
+    # loci information is encoded in tss_id, which is in the target_id column
+    separate(
+      .data$target_id, into=c("seqnames", "start", "end", "strand"), sep=",",
+      remove=FALSE, convert=TRUE) %>%
+    { GRanges(
+        seqnames=Rle(.$seqnames),
+        ranges=IRanges(.$start, .$end),
+        strand=.$strand,
+        tss_id=.$target_id,
+        qval=.$qval,
+        mean_obs=.$mean_obs) }
 }
