@@ -3,6 +3,10 @@
 #' @param unibind_bed_dir File path or URL to a UniBind "TFBs per TF (in BED
 #'   format)" directory or gzipped tarball (ending in \code{tar.gz}).
 #'
+#' @return A list of GRanges. The names of the list are transcription factor
+#'   names, and each element of the list is a GRanges recording the loci that
+#'   that transcription factor maps to, according to the \code{unibind_bed_dir}.
+#'
 #' @details \code{unibind_bed_dir} will be used directly if it is a local
 #'   directory. Otherwise, if it is a local gzipped tarball (determined by
 #'   checking for the file extension \code{tar.gz}), it will be extracted to a
@@ -19,7 +23,6 @@
 get_tf2loci <- function(
     unibind_bed_dir="https://unibind.uio.no/static/data/bulk/pwm_tfbs_per_tf.tar.gz"
   ) {
-
   assert_that(is.string(unibind_bed_dir))
 
   unibind_bed_dir <- unibind_bed_dir %>%

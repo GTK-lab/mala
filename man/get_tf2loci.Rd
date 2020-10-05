@@ -12,6 +12,11 @@ get_tf2loci(
 \item{unibind_bed_dir}{File path or URL to a UniBind "TFBs per TF (in BED
 format)" directory or gzipped tarball (ending in \code{tar.gz}).}
 }
+\value{
+A list of GRanges. The names of the list are transcription factor
+names, and each element of the list is a GRanges recording the loci that
+that transcription factor maps to, according to the \code{unibind_bed_dir}.
+}
 \description{
 Get a mapping of transcription factors to genomic loci
 }

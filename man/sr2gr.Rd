@@ -10,7 +10,7 @@ sr2gr(sr)
 \item{sr}{\code{data.frame} from \code{sleuth_results},}
 }
 \value{
-GRanges with qva, mean_obs, and target_id (usually a unique
+GRanges with qval, mean_obs, and target_id (usually a unique
 TSS-associated ID) as metadata.
 }
 \description{

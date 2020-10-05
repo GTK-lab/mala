@@ -67,7 +67,7 @@ extract_if_targz <- function(path) {
 #'
 #' @param sr \code{data.frame} from \code{sleuth_results},
 #'
-#' @return GRanges with qva, mean_obs, and target_id (usually a unique
+#' @return GRanges with qval, mean_obs, and target_id (usually a unique
 #'   TSS-associated ID) as metadata.
 #'
 #' @details Rows with \code{NA} qvals are dropped.
@@ -87,7 +87,7 @@ sr2gr <- function(sr) {
   assert_that(has_name(sr, "mean_obs"))
   assert_that(not_empty(sr))
 
-  sr %>%
+  gr <- sr %>%
     as_tibble() %>%
     select(.data$target_id, .data$qval, .data$mean_obs) %>%
     filter(!is.na(.data$qval)) %>%
@@ -102,4 +102,8 @@ sr2gr <- function(sr) {
         tss_id=.$target_id,
         qval=.$qval,
         mean_obs=.$mean_obs) }
+
+  message(sprintf("Removed %d rows with NA qvals", nrow(sr) - length(gr)))
+
+  gr
 }
