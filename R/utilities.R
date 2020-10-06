@@ -1,7 +1,6 @@
 globalVariables(".")  # Oh, the joy of programming in R.
 
 #' Resolve file or URL
-#' @keywords internal
 #'
 #' @param path File path or URL.
 #'
@@ -39,7 +38,6 @@ download_if_url <- function(path) {
 }
 
 #' Decompress a gzipped tarball
-#' @keywords internal
 #'
 #' @param path File path to gzipped tarball.
 #'

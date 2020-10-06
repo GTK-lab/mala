@@ -21,4 +21,3 @@ has been downloaded before by checking if the file
 \code{path} to \code{basename(path)} and return
 \code{basename(path)}.
 }
-\keyword{internal}

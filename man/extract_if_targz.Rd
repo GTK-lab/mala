@@ -12,4 +12,3 @@ extract_if_targz(path)
 \description{
 Decompress a gzipped tarball
 }
-\keyword{internal}
