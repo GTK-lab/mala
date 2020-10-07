@@ -13,7 +13,7 @@ get_tf2loci(
 format)" directory or gzipped tarball (ending in \code{tar.gz}).}
 }
 \value{
-A list of GRanges. The names of the list are transcription factor
+A GRangesList. The names of the list are transcription factor
 names, and each element of the list is a GRanges recording the loci that
 that transcription factor maps to, according to the \code{unibind_bed_dir}.
 }

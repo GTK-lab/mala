@@ -39,7 +39,7 @@ aggregate_gr <- function(
         queryHits() %>%
         gr[., ]
       pval <- lancaster(gr_sub$qval, weight_fn(gr_sub$mean_obs))
-      tibble(pval=.data$pval)
+      tibble(pval=pval)
     }) %>%
     bind_rows() %>%
     mutate(TF=names(tf2loci)) %>%

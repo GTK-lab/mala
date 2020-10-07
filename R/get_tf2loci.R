@@ -3,7 +3,7 @@
 #' @param unibind_bed_dir File path or URL to a UniBind "TFBs per TF (in BED
 #'   format)" directory or gzipped tarball (ending in \code{tar.gz}).
 #'
-#' @return A list of GRanges. The names of the list are transcription factor
+#' @return A GRangesList. The names of the list are transcription factor
 #'   names, and each element of the list is a GRanges recording the loci that
 #'   that transcription factor maps to, according to the \code{unibind_bed_dir}.
 #'
@@ -20,6 +20,7 @@
 #' @importFrom assertthat assert_that is.string
 #' @importFrom fs path_join
 #' @importFrom rtracklayer import
+#' @importFrom GenomicRanges GRangesList
 get_tf2loci <- function(
     unibind_bed_dir="https://unibind.uio.no/static/data/bulk/pwm_tfbs_per_tf.tar.gz"
   ) {
@@ -35,7 +36,7 @@ get_tf2loci <- function(
     "Loading. Each dot represents a transcription factor (total: %d).",
     length(tfs)))
   # /FOR EACH/ transcription factor
-  granges_list <- sapply(tfs, function(tf) {
+  list_of_granges <- sapply(tfs, function(tf) {
     message(".", appendLF=FALSE)
     dirp <- path_join(c(unibind_bed_dir, tf))
 
@@ -52,6 +53,9 @@ get_tf2loci <- function(
     granges
   }, simplify=FALSE)
   message()  # just for the newline
+
+  granges_list <- GRangesList(list_of_granges)
+  names(granges_list) <- tfs
 
   granges_list
 }
