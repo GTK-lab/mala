@@ -76,7 +76,6 @@ extract_if_targz <- function(path) {
 #' @importFrom rlang .data
 #' @importFrom tidyr separate
 #' @importFrom GenomicRanges GRanges
-#' @importFrom S4Vectors Rle
 #' @importFrom IRanges IRanges
 sr2gr <- function(sr) {
 
@@ -94,7 +93,7 @@ sr2gr <- function(sr) {
       .data$target_id, into=c("seqnames", "start", "end", "strand"), sep=",",
       remove=FALSE, convert=TRUE) %>%
     { GRanges(
-        seqnames=Rle(.$seqnames),
+        seqnames=.$seqnames,
         ranges=IRanges(.$start, .$end),
         strand=.$strand,
         tss_id=.$target_id,
@@ -104,4 +103,25 @@ sr2gr <- function(sr) {
   message(sprintf("Removed %d rows with NA qvals", nrow(sr) - length(gr)))
 
   gr
+}
+
+#' Convert tx2tss tibble to GRanges
+#'
+#' @param tx2tss tibble from get_tx2tss
+#'
+#' @return GRanges object with metadata column target_id.
+#' @importFrom assertthat assert_that not_empty
+#' @importFrom rlang .data
+#' @importFrom tidyr separate
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+tx2tss2gr <- function(tx2tss) {
+  assert_that(not_empty(tx2tss))
+  tx2tss %>%
+    separate(
+      .data$tss_id, into=c("seqnames", "start", "end", "strand"), sep=",",
+      convert=TRUE) %>%
+    { GRanges(
+      seqnames=.$seqnames, ranges=IRanges(start=.$start, end=.$end),
+      strand=.$strand, target_id=.$target_id) }
 }
