@@ -7,7 +7,7 @@
 aggregate_gr(
   gr,
   tf2loci,
-  weight_fn = function(obs) log(obs + 1)/sum(log(obs + 1))
+  weight_fn = function(mcols) (1/mcols$tfs_overlapped)/sum(1/mcols$tfs_overlapped)
 )
 }
 \arguments{
@@ -18,14 +18,20 @@ aggregate_gr(
 bindings, obtained using \code{get_tf2loci}.}
 
 \item{weight_fn}{Unary function to produce weights for Lancaster p-value
-aggregation. This function should take a length-N numeric vector of
-mean_obs, where N is the number of loci for that transcription factor.}
+aggregation. This function will receive \code{mcols(gr)}, and should return
+a numeric vector of the same length as \code{length(gr)}. See details.}
 }
 \value{
 A tibble of results.
 }
 \description{
 Aggregate GRanges-represented sleuth results using TF to loci mappings
+}
+\details{
+This function will add a column "tfs_overlapped" to \code{mcols(gr)}
+which is the number of transcription factors which each TSS in \code{gr}
+maps to, if that column does not yet exists. So, you can use that column
+in \code{weight_fn}.
 }
 \references{
 Yi, L., Pimentel, H., Bray, N.L. et al. Gene-level

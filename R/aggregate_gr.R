@@ -5,8 +5,13 @@
 #' @param tf2loci List of GRanges representing transcription factor to loci
 #'   bindings, obtained using \code{get_tf2loci}.
 #' @param weight_fn Unary function to produce weights for Lancaster p-value
-#'   aggregation. This function should take a length-N numeric vector of
-#'   mean_obs, where N is the number of loci for that transcription factor.
+#'   aggregation. This function will receive \code{mcols(gr)}, and should return
+#'   a numeric vector of the same length as \code{length(gr)}. See details.
+#'
+#' @details This function will add a column "tfs_overlapped" to \code{mcols(gr)}
+#'   which is the number of transcription factors which each TSS in \code{gr}
+#'   maps to, if that column does not yet exists. So, you can use that column
+#'   in \code{weight_fn}.
 #'
 #' @return A tibble of results.
 #'
@@ -15,17 +20,31 @@
 #'   19, 53 (2018). https://doi.org/10.1186/s13059-018-1419-z
 #'
 #' @importFrom magrittr %>%
-#' @importFrom assertthat assert_that not_empty
-#' @importFrom GenomicRanges findOverlaps
+#' @importFrom assertthat assert_that not_empty has_name
+#' @importFrom GenomicRanges findOverlaps mcols mcols<-
 #' @importFrom S4Vectors queryHits
 #' @importFrom aggregation lancaster
-#' @importFrom dplyr bind_rows mutate select
+#' @importFrom dplyr bind_rows mutate select group_by summarise n
 aggregate_gr <- function(
-    gr, tf2loci, weight_fn=function(obs) log(obs+1)/sum(log(obs+1))) {
-  # TODO custom weight function
+    gr, tf2loci,
+    weight_fn=function(mcols)
+      (1/mcols$tfs_overlapped) / sum(1/mcols$tfs_overlapped)) {
 
   assert_that(not_empty(gr))
   assert_that(not_empty(tf2loci))
+
+  if (has_name(mcols(gr), "tfs_overlapped")) {
+    message("Column tfs_overlapped already exists in gr, not overwriting.")
+  } else {
+    message("Creating column tfs_overlapped.")
+    hits <- suppressWarnings(findOverlaps(gr, tf2loci)) %>%
+      as_tibble() %>%
+      group_by(queryHits) %>%
+      summarise(tfs_overlapped=n())
+    tfs_overlapped <- rep(0, length(gr))
+    tfs_overlapped[hits$queryHits] <- hits$tfs_overlapped
+    mcols(gr)$tfs_overlapped <- tfs_overlapped
+  }
 
   message(sprintf(
     "Calculating. Each dot represents a transcription factor (total: %d).",
@@ -38,7 +57,7 @@ aggregate_gr <- function(
       gr_sub <- suppressWarnings(findOverlaps(gr, tfloci)) %>%
         queryHits() %>%
         gr[., ]
-      pval <- lancaster(gr_sub$qval, weight_fn(gr_sub$mean_obs))
+      pval <- lancaster(gr_sub$qval, weight_fn(mcols(gr_sub)))
       tibble(pval=pval)
     }) %>%
     bind_rows() %>%
