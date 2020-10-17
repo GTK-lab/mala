@@ -25,6 +25,7 @@
 #' @importFrom S4Vectors queryHits
 #' @importFrom aggregation lancaster
 #' @importFrom dplyr bind_rows mutate select group_by summarise n
+#' @importFrom stats p.adjust
 aggregate_gr <- function(
     gr, tf2loci,
     weight_fn=function(mcols)
@@ -62,7 +63,8 @@ aggregate_gr <- function(
     }) %>%
     bind_rows() %>%
     mutate(TF=names(tf2loci)) %>%
-    select(.data$TF, .data$pval)  # reorder columns
+    select(.data$TF, .data$pval) %>%  # reorder columns
+    mutate(qval=p.adjust(.data$pval, "BH"))
   message()  # just for the newline
 
   results %>% arrange(.data$pval)
