@@ -19,12 +19,12 @@
 #'   differential analysis at transcript-level resolution. Genome Biol
 #'   19, 53 (2018). https://doi.org/10.1186/s13059-018-1419-z
 #'
-#' @importFrom magrittr %>%
-#' @importFrom assertthat assert_that not_empty has_name
 #' @importFrom GenomicRanges findOverlaps mcols mcols<-
 #' @importFrom S4Vectors queryHits
 #' @importFrom aggregation lancaster
-#' @importFrom dplyr bind_rows mutate select group_by summarise n
+#' @importFrom assertthat assert_that not_empty has_name
+#' @importFrom dplyr bind_rows mutate select group_by summarise n arrange
+#' @importFrom magrittr %>%
 #' @importFrom stats p.adjust
 aggregate_gr <- function(
     gr, tf2loci,
