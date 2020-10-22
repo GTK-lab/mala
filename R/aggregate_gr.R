@@ -19,7 +19,7 @@
 #'   differential analysis at transcript-level resolution. Genome Biol
 #'   19, 53 (2018). https://doi.org/10.1186/s13059-018-1419-z
 #'
-#' @importFrom GenomicRanges findOverlaps mcols mcols<-
+#' @importFrom GenomicRanges findOverlaps mcols mcols<- reduce
 #' @importFrom S4Vectors queryHits
 #' @importFrom aggregation lancaster
 #' @importFrom assertthat assert_that not_empty has_name
@@ -38,7 +38,8 @@ aggregate_gr <- function(
     message("Column tfs_overlapped already exists in gr, not overwriting.")
   } else {
     message("Creating column tfs_overlapped.")
-    hits <- suppressWarnings(findOverlaps(gr, tf2loci)) %>%
+    # GenomicRanges::reduces merges loci to avoid double-counting
+    hits <- suppressWarnings(findOverlaps(gr, reduce(tf2loci))) %>%
       as_tibble() %>%
       group_by(queryHits) %>%
       summarise(tfs_overlapped=n())
@@ -57,6 +58,7 @@ aggregate_gr <- function(
       # and this generates a warning from `c` when combining GRanges.
       gr_sub <- suppressWarnings(findOverlaps(gr, tfloci)) %>%
         queryHits() %>%
+        unique() %>%
         gr[., ]
       pval <- lancaster(gr_sub$qval, weight_fn(mcols(gr_sub)))
       tibble(pval=pval)
