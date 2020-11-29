@@ -12,3 +12,9 @@ extract_if_targz(path)
 \description{
 Decompress a gzipped tarball
 }
+\details{
+The contents of the tarball are extracted into a directory which has
+directory name equals to the basename of the \code{path}. For example,
+\code{a.tar.gz} containing \code{b.txt} will generate directory \code{./a/}
+and file \code{./a/b.txt}.
+}

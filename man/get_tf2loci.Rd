@@ -5,7 +5,8 @@
 \title{Get a mapping of transcription factors to genomic loci}
 \usage{
 get_tf2loci(
-  unibind_bed_dir = "https://unibind.uio.no/static/data/bulk/pwm_tfbs_per_tf.tar.gz"
+ 
+    unibind_bed_dir = "https://unibind.uio.no/static/data/20200918/bulk_Robust/Homo_sapiens/damo_hg38_TFBS_per_TF.tar.gz"
 )
 }
 \arguments{

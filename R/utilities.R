@@ -19,6 +19,9 @@ download_if_url <- function(path) {
   assert_that(is.string(path))
 
   # If path is a local file path...
+  # Currently, this if block assumes that if a request to `path` results in an
+  # error, then `path` must be a local file path. Obviously, this is not
+  # necessarily true, because web links can 404. TODO: improve this check.
   if (!url.exists(path)) {
     assert_that(file.exists(path))
     return(path)
@@ -40,6 +43,11 @@ download_if_url <- function(path) {
 #' Decompress a gzipped tarball
 #'
 #' @param path File path to gzipped tarball.
+#'
+#' @details The contents of the tarball are extracted into a directory which has
+#'   directory name equals to the basename of the \code{path}. For example,
+#'   \code{a.tar.gz} containing \code{b.txt} will generate directory \code{./a/}
+#'   and file \code{./a/b.txt}.
 #'
 #' @importFrom assertthat assert_that is.string is.dir
 #' @importFrom stringr str_extract

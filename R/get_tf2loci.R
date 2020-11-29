@@ -18,11 +18,11 @@
 #'
 #' @importFrom magrittr %>%
 #' @importFrom assertthat assert_that is.string
-#' @importFrom fs path_join
+#' @importFrom fs is_dir path
 #' @importFrom rtracklayer import
 #' @importFrom GenomicRanges GRangesList
 get_tf2loci <- function(
-    unibind_bed_dir="https://unibind.uio.no/static/data/bulk/pwm_tfbs_per_tf.tar.gz"
+    unibind_bed_dir="https://unibind.uio.no/static/data/20200918/bulk_Robust/Homo_sapiens/damo_hg38_TFBS_per_TF.tar.gz"
   ) {
   assert_that(is.string(unibind_bed_dir))
 
@@ -30,7 +30,13 @@ get_tf2loci <- function(
     download_if_url() %>%
     extract_if_targz()
 
-  tfs <- dir(unibind_bed_dir)
+  # extract_if_targz dumps BED files like:
+  # damo_hg38_TFBS_per_TF/Homo_sapiens/TFBS_per_TF/*.bed
+  dir_species <- dir(unibind_bed_dir)
+  dir_table <- dir(path(unibind_bed_dir, dir_species))
+  dir_of_tfs <- path(unibind_bed_dir, dir_species, dir_table)
+  tfs <- dir(dir_of_tfs) %>%
+    Filter(function(x) is_dir(path(dir_of_tfs, x)), .)  # "remove" file TFs.txt
 
   message(sprintf(
     "Loading. Each dot represents a transcription factor (total: %d).",
@@ -38,13 +44,13 @@ get_tf2loci <- function(
   # /FOR EACH/ transcription factor
   list_of_granges <- sapply(tfs, function(tf) {
     message(".", appendLF=FALSE)
-    dirp <- path_join(c(unibind_bed_dir, tf))
+    dirp <- path(dir_of_tfs, tf)
 
     # /FOR EACH/ BED file, convert to GRanges. BED is 0-based start-inclusive
     # but end-exclusive, GRanges in 1-based inclusive, but rtracklayer takes
     # care of the mess.
     granges <- lapply(dir(dirp), function(bedfn) {
-        granges_sub <- import(path_join(c(dirp, bedfn)))
+        granges_sub <- import(path(dirp, bedfn))
       }) %>%
       # Different BED files include different 'esoteric' sequences (chromosomes)
       # and this generates a warning from `c` when combining GRanges.
