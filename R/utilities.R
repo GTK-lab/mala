@@ -13,16 +13,12 @@ globalVariables(".")  # Oh, the joy of programming in R.
 #'   \code{basename(path)}.
 #'
 #' @importFrom assertthat assert_that is.string
-#' @importFrom RCurl url.exists
+#' @importFrom urltools scheme
 #' @importFrom utils download.file
 download_if_url <- function(path) {
   assert_that(is.string(path))
 
-  # If path is a local file path...
-  # Currently, this if block assumes that if a request to `path` results in an
-  # error, then `path` must be a local file path. Obviously, this is not
-  # necessarily true, because web links can 404. TODO: improve this check.
-  if (!url.exists(path)) {
+  if (is.na(scheme(path)) || scheme(path) == "file") {
     assert_that(file.exists(path))
     return(path)
   }
