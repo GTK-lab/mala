@@ -7,7 +7,8 @@
 aggregate_gr(
   gr,
   tf2loci,
-  weight_fn = function(mcols) (1/mcols$tfs_overlapped)/sum(1/mcols$tfs_overlapped)
+  weight_fn = function(mcols) (1/mcols$tfs_overlapped)/sum(1/mcols$tfs_overlapped),
+  filter_mapping_fn = function(n_rows) n_rows > median(n_rows)
 )
 }
 \arguments{
@@ -20,6 +21,14 @@ bindings, obtained using \code{get_tf2loci}.}
 \item{weight_fn}{Unary function to produce weights for Lancaster p-value
 aggregation. This function will receive \code{mcols(gr)}, and should return
 a numeric vector of the same length as \code{length(gr)}. See details.}
+
+\item{filter_mapping_fn}{Unary function to filter out TSS to TF mappings
+which seem poorly supported by \code{tf2loci}. This function will receive
+a numeric vector which represents the number of rows in tf2loci which
+support each TSS to TF mapping, for each TSS (that is, each numeric vector
+contains TSS to TF mappings for one TSS only). Then, the function should
+return a logical vector representing which TSS to TF mappings should be
+used.}
 }
 \value{
 A tibble of results.
