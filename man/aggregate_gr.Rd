@@ -28,7 +28,8 @@ a numeric vector which represents the number of rows in tf2loci which
 support each TSS to TF mapping, for each TSS (that is, each numeric vector
 contains TSS to TF mappings for one TSS only). Then, the function should
 return a logical vector representing which TSS to TF mappings should be
-used.}
+used. To keep all TSS to TF mappings without filtering, use
+\code{filter_mapping_fn=function(.) TRUE}.}
 }
 \value{
 A tibble of results.

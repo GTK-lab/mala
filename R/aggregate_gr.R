@@ -13,7 +13,8 @@
 #'   support each TSS to TF mapping, for each TSS (that is, each numeric vector
 #'   contains TSS to TF mappings for one TSS only). Then, the function should
 #'   return a logical vector representing which TSS to TF mappings should be
-#'   used.
+#'   used. To keep all TSS to TF mappings without filtering, use
+#'   \code{filter_mapping_fn=function(.) TRUE}.
 #'
 #' @details This function will add a column "tfs_overlapped" to \code{mcols(gr)}
 #'   which is the number of transcription factors which each TSS in \code{gr}
@@ -27,12 +28,13 @@
 #'   19, 53 (2018). https://doi.org/10.1186/s13059-018-1419-z
 #'
 #' @importFrom GenomicRanges findOverlaps mcols mcols<- reduce
-#' @importFrom S4Vectors queryHits
 #' @importFrom aggregation lancaster
 #' @importFrom assertthat assert_that not_empty has_name
 #' @importFrom dplyr bind_rows mutate select group_by summarise n arrange pull
 #' @importFrom magrittr %>%
+#' @importFrom rlang .data
 #' @importFrom stats p.adjust median
+#' @importFrom tibble as_tibble
 aggregate_gr <- function(
     gr, tf2loci,
     weight_fn=function(mcols)
@@ -53,7 +55,7 @@ aggregate_gr <- function(
     # mappings draw from many different experiments.)
     hits <- suppressWarnings(findOverlaps(gr, reduce(tf2loci))) %>%
       as_tibble() %>%
-      group_by(queryHits) %>%
+      group_by(.data$queryHits) %>%
       summarise(tfs_overlapped=n())
     tfs_overlapped <- rep(0, length(gr))
     tfs_overlapped[hits$queryHits] <- hits$tfs_overlapped
@@ -66,19 +68,7 @@ aggregate_gr <- function(
   # /FOR EACH/ transcription factor
   results <- lapply(tf2loci, function(tfloci) {
       message(".", appendLF=FALSE)
-      # Different BED files include different 'esoteric' sequences (chromosomes)
-      # and this generates a warning from `c` when combining GRanges.
-      overlaps <- suppressWarnings(findOverlaps(gr, tfloci)) %>%
-        as_tibble() %>%
-        # queryHits are from gr, subjectHits from tfloci.
-        group_by(.data$queryHits) %>%
-        summarise(`Number of BED entries overlapped`=n())
-      overlaps_passing_filter_bool <- overlaps %>%
-        pull(.data$`Number of BED entries overlapped`) %>%
-        filter_mapping_fn()
-      overlaps_passing_filter_idx <- overlaps[overlaps_passing_filter_bool, ] %>%
-        pull(.data$queryHits)
-      gr_sub <- gr[overlaps_passing_filter_idx, ]
+      gr_sub <- filter_by_num_overlaps(gr, tfloci, filter_mapping_fn)
       pval <- lancaster(gr_sub$qval, weight_fn(mcols(gr_sub)))
       tibble(pval=pval)
     }) %>%

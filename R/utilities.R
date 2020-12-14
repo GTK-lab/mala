@@ -129,3 +129,33 @@ tx2tss2gr <- function(tx2tss) {
       seqnames=.$seqnames, ranges=IRanges(start=.$start, end=.$end),
       strand=.$strand, target_id=.$target_id) }
 }
+
+#' Filter a GRanges object based on its number of overlaps with another
+#'
+#' @param gr_to_filter a GRanges object to filter
+#' @param gr_to_overlap a GRanges object to overlap \code{to_filter} with
+#' @param filter_fn A unary function which takes a numeric vector of length
+#'   \code{length(to_filter)}, where the i'th element of that vector is the
+#'   number of overlaps of the i'th row of \code{to_filter} with
+#'   \code{gr_to_overlap}. This function should then return a logical vector
+#'   (usually of length also equals \code{length(to_filter)}) with which to
+#'   subset (index) \code{to_filter} with.
+#'
+#' @return GRanges subset of \code{gr_to_filter}.
+#'
+#' @importFrom GenomicRanges findOverlaps
+#' @importFrom dplyr group_by summarise n pull
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data
+#' @importFrom tibble as_tibble
+filter_by_num_overlaps <- function(gr_to_filter, gr_to_overlap, filter_fn) {
+  overlaps <- suppressWarnings(findOverlaps(gr_to_filter, gr_to_overlap)) %>%
+    as_tibble() %>%
+    group_by(.data$queryHits) %>%
+    summarise(num_overlaps=n())
+  overlaps_idxs_to_keep <- overlaps %>%
+    pull(.data$num_overlaps) %>%
+    filter_fn()
+  gr_to_filter_idxs_to_keep <- overlaps$queryHits[overlaps_idxs_to_keep]
+  gr_to_filter[gr_to_filter_idxs_to_keep, ]
+}

@@ -1,10 +1,7 @@
 # Many of these are files used to test functions in development.
 
-get-sleuth-results-for-testing.r
 Homo_sapiens.GRCh38.100.gtf
 Homo_sapiens.GRCh38.100.gtf.gz
-human.hg38.genome
-pwm_tfbs_per_tf
-pwm_tfbs_per_tf.tar.gz
-sleuth-results-for-testing.rds.gz
-test_simulation
+damo_hg38_TFBS_per_TF
+damo_hg38_TFBS_per_TF.tar.gz
+test-with-tgfbeta-experiment.r
