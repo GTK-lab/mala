@@ -7,6 +7,7 @@
 aggregate_gr(
   gr,
   tf2loci,
+  intermediates = FALSE,
   weight_fn = function(mcols) (1/mcols$tfs_overlapped)/sum(1/mcols$tfs_overlapped),
   filter_mapping_fn = function(n_rows) n_rows > median(n_rows)
 )
@@ -17,6 +18,9 @@ aggregate_gr(
 
 \item{tf2loci}{List of GRanges representing transcription factor to loci
 bindings, obtained using \code{get_tf2loci}.}
+
+\item{intermediates}{If this function should return a list containing
+intermediate data structures used in the computation.}
 
 \item{weight_fn}{Unary function to produce weights for Lancaster p-value
 aggregation. This function will receive \code{mcols(gr)}, and should return
@@ -32,7 +36,17 @@ used. To keep all TSS to TF mappings without filtering, use
 \code{filter_mapping_fn=function(.) TRUE}.}
 }
 \value{
-A tibble of results.
+If \code{intermediates=FALSE}, a tibble of results, one row per TF.
+If \code{intermediates=TRUE}, a list with named elements:
+\describe{
+\item{gr}{The GRanges of the argument \code{gr}, possibly with an added
+metadata columns "tfs_overlapped" --- see details.}
+\item{grl}{A list of GRanges. Each GRanges is derived from overlapping
+the argument \code{gr} with a transcription factor from the argument
+\code{tf2loci}.}
+\item{tfs}{The tibble of results which would have been returned by itself
+if \code{intermediates=FALSE}}.
+}
 }
 \description{
 Aggregate GRanges-represented sleuth results using TF to loci mappings
