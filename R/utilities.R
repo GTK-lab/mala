@@ -151,11 +151,24 @@ tx2tss2gr <- function(tx2tss) {
 filter_by_num_overlaps <- function(gr_to_filter, gr_to_overlap, filter_fn) {
   overlaps <- suppressWarnings(findOverlaps(gr_to_filter, gr_to_overlap)) %>%
     as_tibble() %>%
+    # Filtering is implicit --- if a row in gr_to_filter does not overlap with
+    # gr_to_overlap, then its row index will not be in .data$queryHits.
     group_by(.data$queryHits) %>%
     summarise(num_overlaps=n())
-  overlaps_idxs_to_keep <- overlaps %>%
-    pull(.data$num_overlaps) %>%
-    filter_fn()
-  gr_to_filter_idxs_to_keep <- overlaps$queryHits[overlaps_idxs_to_keep]
-  gr_to_filter[gr_to_filter_idxs_to_keep, ]
+
+  if (nrow(overlaps) == 0) {
+    return(GRanges())  # no overlaps to report
+  } else {  # otherwise...
+    overlaps_idxs_to_keep <- overlaps %>%
+      pull(.data$num_overlaps) %>%
+      filter_fn()
+    # NB overlaps_idxs_to_keep is not the same as gr_to_filter_idxs_to_keep.
+    # e.g.        overlaps$queryHits == c(11, 29, 37),
+    #             overlaps$num_overlaps == c( 5,  1,  3),
+    #          overlaps_idxs_to_keep == c( T,  F,  F),
+    #      gr_to_filter_idxs_to_keep == c(11).
+    # Also, gr_to_filter_idxs_to_keep is guaranteed unique by virtue of group_by
+    gr_to_filter_idxs_to_keep <- overlaps$queryHits[overlaps_idxs_to_keep]
+    gr_to_filter[gr_to_filter_idxs_to_keep, ]
+  }
 }

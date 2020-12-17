@@ -8,7 +8,8 @@
 #'   intermediate data structures used in the computation.
 #' @param weight_fn Unary function to produce weights for Lancaster p-value
 #'   aggregation. This function will receive \code{mcols(gr)}, and should return
-#'   a numeric vector of the same length as \code{length(gr)}. See details.
+#'   a numeric vector of the same length as \code{length(gr)}. mcols(gr) can be
+#'   an empty DataFrame if a TF overlaps nothing in \code{gr}! Also see details.
 #' @param filter_mapping_fn Unary function to filter out TSS to TF mappings
 #'   which seem poorly supported by \code{tf2loci}. This function will receive
 #'   a numeric vector which represents the number of rows in tf2loci which
@@ -91,7 +92,8 @@ aggregate_gr <- function(
   ## For each TSS-TF filtered overlap, aggregate their p-values.
   tfs <- grl %>%
     lapply(function(gr_sub) {
-        # NAs are ignored by lancaster
+        # NAs in gr_sub$qval are ignored by lancaster.
+        # If gr_sub is an empty GRanges, gr_sub$qval is null, lancaster gives NA
         pval <- lancaster(gr_sub$qval, weight_fn(mcols(gr_sub)))
         tibble(pval=pval)
       }) %>%
