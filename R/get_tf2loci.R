@@ -46,6 +46,11 @@ get_tf2loci <- function(
     message(".", appendLF=FALSE)
     dirp <- path(dir_of_tfs, tf)
 
+    if (length(dir(dirp)) == 0) {
+      warning(dirp, " is empty. Skipping")
+      return(NULL)  # NULLs are explicitly filtered out later.
+    }
+
     # /FOR EACH/ BED file, convert to GRanges. BED is 0-based start-inclusive
     # but end-exclusive, GRanges in 1-based inclusive, but rtracklayer takes
     # care of the mess.
@@ -60,8 +65,12 @@ get_tf2loci <- function(
   }, simplify=FALSE)
   message()  # just for the newline
 
-  granges_list <- GRangesList(list_of_granges)
-  names(granges_list) <- tfs
+  not_nulls <- list_of_granges %>%
+    sapply(is.null) %>%
+    `!`
+
+  granges_list <- GRangesList(list_of_granges[not_nulls])
+  names(granges_list) <- tfs[not_nulls]
 
   granges_list
 }
