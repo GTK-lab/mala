@@ -1,7 +1,9 @@
 #' Get a mapping of transcripts to transcription start sites.
 #'
-#' @param threshold If two transcripts are within \code{threshold} nucleotides
-#'   of each other, they are grouped as having the same transcription start sites.
+#' @param upstream Nucleotide distance for how far upstream of a transcript
+#'   should be considered as part of its transcription start site.
+#' @param downstream Nucleotide distance for how far downstream of a transcript
+#'   should be considered as part of its transcription start site.
 #' @param annotation_gtf_file File path or URL to a GTF annotation file in the
 #'   style of ENSEMBL.
 #'
@@ -27,10 +29,10 @@
 #' @importFrom tibble tibble as_tibble
 #' @importFrom tidyr unite
 get_tx2tss <- function(
-    threshold=500,
+    upstream=500, downstream=100,
     annotation_gtf_file="http://ftp.ensembl.org/pub/release-100/gtf/homo_sapiens/Homo_sapiens.GRCh38.100.gtf.gz") {
 
-  assert_that(is.count(threshold))
+  assert_that(is.count(upstream) && is.count(downstream))
   assert_that(is.string(annotation_gtf_file))
   annotation_gtf_file <- download_if_url(annotation_gtf_file)
 
@@ -50,7 +52,7 @@ get_tx2tss <- function(
     # Get only the 1nt TSS. GenomicRanges::resize is strand-aware.
     resize(1) %>%
     # Extend the TSS into (sort-of) promoter regions
-    promoters(threshold, threshold)
+    promoters(upstream=upstream, downstream=downstream)
 
   # GenomicRanges::reduce merges!
   tss <- reduce(tx)
