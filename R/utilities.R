@@ -68,11 +68,17 @@ extract_if_targz <- function(path) {
 #' Convert sleuth results data.frame to GRanges
 #'
 #' @param sr \code{data.frame} from \code{sleuth_results},
+#' @param mean_obs_col_name Column name to find the quantity representing
+#'   mean log observations. For sleuth \code{gene_mode=TRUE}, this is
+#'   \code{"mean_obs"}, for sleuth \code{pval_aggregate=TRUE}, this is
+#'   \code{"sum_mean_obs_count"}.
 #'
 #' @return GRanges with qval, mean_obs, and target_id (usually a unique
 #'   TSS-associated ID) as metadata.
 #'
-#' @details Rows with \code{NA} qvals are dropped.
+#' @details Rows with \code{NA} qvals are dropped. Whatever values are in the
+#'   column with the name \code{mean_obs_col_name} will be saved in the mcol
+#'   column named "mean_obs".
 #'
 #' @importFrom assertthat assert_that has_name not_empty
 #' @importFrom tibble as_tibble
@@ -81,28 +87,31 @@ extract_if_targz <- function(path) {
 #' @importFrom tidyr separate
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
-sr2gr <- function(sr) {
+sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
 
   assert_that(has_name(sr, "target_id"))
   assert_that(has_name(sr, "qval"))
-  assert_that(has_name(sr, "mean_obs"))
+  assert_that(has_name(sr, mean_obs_col_name))
   assert_that(not_empty(sr))
 
-  gr <- sr %>%
+  sr2 <- sr %>%
     as_tibble() %>%
-    select(.data$target_id, .data$qval, .data$mean_obs) %>%
+    select(.data$target_id, .data$qval, .env$mean_obs_col_name) %>%
     filter(!is.na(.data$qval)) %>%
     # loci information is encoded in tss_id, which is in the target_id column
     separate(
       .data$target_id, into=c("seqnames", "start", "end", "strand"), sep=",",
-      remove=FALSE, convert=TRUE) %>%
-    { GRanges(
-        seqnames=.$seqnames,
-        ranges=IRanges(.$start, .$end),
-        strand=.$strand,
-        tss_id=.$target_id,
-        qval=.$qval,
-        mean_obs=.$mean_obs) }
+      remove=FALSE, convert=TRUE)
+
+  # The piping breaks here, because it is difficult to continue with a column
+  # that can have different names.
+  gr <- GRanges(
+    seqnames=sr2$seqnames,
+    ranges=IRanges(sr2$start, sr2$end),
+    strand=sr2$strand,
+    tss_id=sr2$target_id,
+    qval=sr2$qval,
+    mean_obs=pull(sr2[, mean_obs_col_name]))
 
   message(sprintf("Removed %d rows with NA qvals", nrow(sr) - length(gr)))
 

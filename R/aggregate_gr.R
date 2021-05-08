@@ -16,8 +16,9 @@
 #'   support each TSS to TF mapping, for each TSS (that is, each numeric vector
 #'   contains TSS to TF mappings for one TSS only). Then, the function should
 #'   return a logical vector representing which TSS to TF mappings should be
-#'   used. To keep all TSS to TF mappings without filtering, use
-#'   \code{filter_mapping_fn=function(.) TRUE}.
+#'   used. E.g. to keep all TSS to TF mappings with more than a median number of
+#'   supporting BED entries in the UniBind database, use
+#'   \code{filter_mapping_fn=function(x) x > median(x)}.
 #'
 #' @details This function will add a column "tfs_overlapped" to \code{mcols(gr)}
 #'   which is the number of transcription factors which each TSS in \code{gr}
@@ -44,6 +45,7 @@
 #' @importFrom aggregation lancaster
 #' @importFrom assertthat assert_that not_empty has_name
 #' @importFrom dplyr bind_rows mutate select group_by summarise n arrange pull
+#'   row_number
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data
 #' @importFrom stats p.adjust median
@@ -52,8 +54,7 @@ aggregate_gr <- function(
     gr, tf2loci, intermediates=FALSE,
     weight_fn=function(mcols)
       (1/mcols$tfs_overlapped) / sum(1/mcols$tfs_overlapped),
-    filter_mapping_fn=function(n_rows)
-      n_rows > median(n_rows)) {
+    filter_mapping_fn=function(n_rows) TRUE) {
 
   assert_that(not_empty(gr))
   assert_that(not_empty(tf2loci))
@@ -99,9 +100,10 @@ aggregate_gr <- function(
       }) %>%
     bind_rows() %>%
     mutate(TF=names(tf2loci)) %>%
-    select(.data$TF, .data$pval) %>%  # reorder columns
     mutate(qval=p.adjust(.data$pval, "BH")) %>%
-    arrange(.data$pval)
+    arrange(.data$pval) %>%
+    mutate(rank=row_number()) %>%
+    select(.data$rank, .data$TF, .data$pval, .data$qval)  # reorder columns
   message()  # just for the newline
 
   if (intermediates) list(gr=gr, grl=grl,tfs=tfs) else tfs

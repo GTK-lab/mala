@@ -9,7 +9,7 @@ aggregate_gr(
   tf2loci,
   intermediates = FALSE,
   weight_fn = function(mcols) (1/mcols$tfs_overlapped)/sum(1/mcols$tfs_overlapped),
-  filter_mapping_fn = function(n_rows) n_rows > median(n_rows)
+  filter_mapping_fn = function(n_rows) TRUE
 )
 }
 \arguments{
@@ -33,8 +33,9 @@ a numeric vector which represents the number of rows in tf2loci which
 support each TSS to TF mapping, for each TSS (that is, each numeric vector
 contains TSS to TF mappings for one TSS only). Then, the function should
 return a logical vector representing which TSS to TF mappings should be
-used. To keep all TSS to TF mappings without filtering, use
-\code{filter_mapping_fn=function(.) TRUE}.}
+used. E.g. to keep all TSS to TF mappings with more than a median number of
+supporting BED entries in the UniBind database, use
+\code{filter_mapping_fn=function(x) x > median(x)}.}
 }
 \value{
 If \code{intermediates=FALSE}, a tibble of results, one row per TF.
