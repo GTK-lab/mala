@@ -6,12 +6,28 @@
 \usage{
 get_tf2loci(
  
-    unibind_bed_dir = "https://unibind.uio.no/static/data/20200918/bulk_Robust/Homo_sapiens/damo_hg38_TFBS_per_TF.tar.gz"
+    unibind_bed_dir = "https://unibind.uio.no/static/data/20210421/bulk_Robust/Homo_sapiens/damo_hg38_TFBS_per_TF.tar.gz",
+  save_to_cache = TRUE,
+  overwrite_cache = FALSE,
+  read_from_cache = TRUE
 )
 }
 \arguments{
-\item{unibind_bed_dir}{File path or URL to a UniBind "TFBs per TF (in BED
+\item{unibind_bed_dir}{File path or URL to a UniBind "TFBSs per TF (in BED
 format)" directory or gzipped tarball (ending in \code{tar.gz}).}
+
+\item{save_to_cache}{Should the raw archive downloaded from UniBind be cached?
+\code{overwrite_cache} modifies this behaviour.}
+
+\item{overwrite_cache}{If there was a previous download from the same
+\code{unibind_bed_dir} with \code{save_to_cache}, should this new function
+call overwrite that cached download? Note that different
+\code{unibind_bed_dir} files are cached differently (they are
+version-aware).}
+
+\item{read_from_cache}{If there was a previous download from the same
+\code{unibind_bed_dir}, should this new function call just read from that,
+rather than try to download and parse it again?}
 }
 \value{
 A GRangesList. The names of the list are transcription factor

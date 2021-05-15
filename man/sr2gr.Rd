@@ -4,10 +4,15 @@
 \alias{sr2gr}
 \title{Convert sleuth results data.frame to GRanges}
 \usage{
-sr2gr(sr)
+sr2gr(sr, mean_obs_col_name = "mean_obs")
 }
 \arguments{
 \item{sr}{\code{data.frame} from \code{sleuth_results},}
+
+\item{mean_obs_col_name}{Column name to find the quantity representing
+mean log observations. For sleuth \code{gene_mode=TRUE}, this is
+\code{"mean_obs"}, for sleuth \code{pval_aggregate=TRUE}, this is
+\code{"sum_mean_obs_count"}.}
 }
 \value{
 GRanges with qval, mean_obs, and target_id (usually a unique
@@ -17,5 +22,7 @@ TSS-associated ID) as metadata.
 Convert sleuth results data.frame to GRanges
 }
 \details{
-Rows with \code{NA} qvals are dropped.
+Rows with \code{NA} qvals are dropped. Whatever values are in the
+column with the name \code{mean_obs_col_name} will be saved in the mcol
+column named "mean_obs".
 }
