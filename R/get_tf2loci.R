@@ -2,14 +2,14 @@
 #'
 #' @param unibind_bed_dir File path or URL to a UniBind "TFBSs per TF (in BED
 #'   format)" directory or gzipped tarball (ending in \code{tar.gz}).
-#' @param save_to_cache Should the raw archive downloaded from UniBind be cached?
-#'   \code{overwrite_cache} modifies this behaviour.
-#' @param overwrite_cache If there was a previous download from the same
+#' @param save_to_cache Should the results be cached? (\code{overwrite_cache}
+#'   modifies this behaviour.)
+#' @param overwrite_cache If there was a pre-existing cache from the same
 #'   \code{unibind_bed_dir} with \code{save_to_cache}, should this new function
-#'   call overwrite that cached download? Note that different
+#'   call overwrite that cached result? Note that different
 #'   \code{unibind_bed_dir} files are cached differently (they are
 #'   version-aware).
-#' @param read_from_cache If there was a previous download from the same
+#' @param read_from_cache If there was a pre-existing cache from the same
 #'   \code{unibind_bed_dir}, should this new function call just read from that,
 #'   rather than try to download and parse it again?
 #'
@@ -47,7 +47,7 @@ get_tf2loci <- function(
   assert_that(is.flag(overwrite_cache))
   assert_that(is.flag(read_from_cache))
 
-  # Does cache file already exist? Do we read_from_cache?
+  # Does a cache file already exist? Do we read_from_cache?
   cache_dir <- R_user_dir(packageName(), "cache") %>% dir_create()
   cache_fn <- path(
     cache_dir,
@@ -120,8 +120,8 @@ get_tf2loci <- function(
       "To overwrite, set overwrite_cache=TRUE.")
     return(granges_list)
   }
-  # in any other case, save to cache
 
+  # in any other case, save to cache
   message("Caching tf2loci to ", cache_fn, "...")
   write_rds(granges_list, cache_fn)  # returns granges_list invisibly
 }

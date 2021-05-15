@@ -83,7 +83,7 @@ extract_if_targz <- function(path) {
 #' @importFrom assertthat assert_that has_name not_empty
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr select
-#' @importFrom rlang .data
+#' @importFrom rlang .data .env
 #' @importFrom tidyr separate
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges

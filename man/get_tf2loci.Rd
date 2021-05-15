@@ -16,16 +16,16 @@ get_tf2loci(
 \item{unibind_bed_dir}{File path or URL to a UniBind "TFBSs per TF (in BED
 format)" directory or gzipped tarball (ending in \code{tar.gz}).}
 
-\item{save_to_cache}{Should the raw archive downloaded from UniBind be cached?
-\code{overwrite_cache} modifies this behaviour.}
+\item{save_to_cache}{Should the results be cached? (\code{overwrite_cache}
+modifies this behaviour.)}
 
-\item{overwrite_cache}{If there was a previous download from the same
+\item{overwrite_cache}{If there was a pre-existing cache from the same
 \code{unibind_bed_dir} with \code{save_to_cache}, should this new function
-call overwrite that cached download? Note that different
+call overwrite that cached result? Note that different
 \code{unibind_bed_dir} files are cached differently (they are
 version-aware).}
 
-\item{read_from_cache}{If there was a previous download from the same
+\item{read_from_cache}{If there was a pre-existing cache from the same
 \code{unibind_bed_dir}, should this new function call just read from that,
 rather than try to download and parse it again?}
 }

@@ -8,7 +8,10 @@ get_tx2tss(
   upstream = 500,
   downstream = 100,
  
-    annotation_gtf_file = "http://ftp.ensembl.org/pub/release-100/gtf/homo_sapiens/Homo_sapiens.GRCh38.100.gtf.gz"
+    annotation_gtf_file = "http://ftp.ensembl.org/pub/release-100/gtf/homo_sapiens/Homo_sapiens.GRCh38.100.gtf.gz",
+  save_to_cache = TRUE,
+  overwrite_cache = FALSE,
+  read_from_cache = TRUE
 )
 }
 \arguments{
@@ -20,6 +23,19 @@ should be considered as part of its transcription start site.}
 
 \item{annotation_gtf_file}{File path or URL to a GTF annotation file in the
 style of ENSEMBL.}
+
+\item{save_to_cache}{Should the results be cached? (\code{overwrite_cache}
+modifies this behaviour.)}
+
+\item{overwrite_cache}{If there was a pre-existing cache from the same
+\code{annotation_gtf_file} with \code{save_to_cache}, should this new
+function call overwrite that cached result? Note that different
+\code{annotation_gtf_file} files are cached differently (they are
+version-aware).}
+
+\item{read_from_cache}{If there was a pre-existing cache from the same
+\code{annotation_gtf_file}, should this new function call just read from
+that, rather than try to download and parse it again?}
 }
 \value{
 tibble with two columns: \code{target_id} which contains ENST
