@@ -50,7 +50,6 @@ get_tf2loci <- function(
 
     assert_that(is.string(unibind_fpath))
     assert_that(is.string(unibind_rname))
-    assert_that(is.string(unibind_bed_dir))
     assert_that(is.flag(overwrite_cache))
 
     rid <- bfcquery(bfc,unibind_fpath,field='fpath',exact=TRUE)$rid
@@ -63,13 +62,18 @@ get_tf2loci <- function(
     }
     cache_dir <- R_user_dir(ifelse(is.character(packageName()),packageName(),"mala"), "cache") |> dir_create()
 
-    cache_fn <- path(
+    message(glue("cach_dir is {cache_dir}"))
+
+    cache_fn <- fs::path(
         cache_dir,
         paste(
             "tf2loci-",
             digest(unibind_rname, "md5", serialize=TRUE) |> substr(1, 8),
             ".rds.gz",
             sep=""))
+
+    message(glue("cache_fn is {cache_fn}"))
+    
 
     if (cache_ok && file_exists(cache_fn)) {
         message("Using saved tf2loci at ", cache_fn, "...")
@@ -85,7 +89,7 @@ get_tf2loci <- function(
 
         message(sprintf(
             "Loading. Each dot represents a transcription factor (total: %d).",
-            length(TFs)))
+            length(bedfiles_by_tf)))
                                         # /FOR EACH/ transcription factor
         granges_by_tf <- GRangesList(sapply(names(bedfiles_by_tf), function(tf) {
             message(glue("{tf}-"), appendLF=FALSE)
@@ -96,7 +100,9 @@ get_tf2loci <- function(
                 return(NULL)  # NULLs are explicitly filtered out later.
             }
 
-            return(unlist(GRangesList(lapply(beds, import))))
+            return(keepStandardChromosomes(
+                reduce(unlist(GRangesList(lapply(beds, import)))),
+                pruning.mode = 'coarse'))
 
         }, simplify=FALSE))
         message("Caching tf2loci to ", cache_fn, "...")

@@ -10,5 +10,5 @@ options::define_option(
              "unibind-rname",
              desc="resource name to use for Unibind",
              default="hg38-robust-damo-20220914",
-             option_name="MalaUnibindSource",
-             envvar_name="mala_unibind_source")
+             option_name="MalaUnibindResource",
+             envvar_name="mala_unibind_resource")

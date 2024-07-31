@@ -1,13 +1,11 @@
 Package: mala
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R:
-    person(given = "First",
-           family = "Last",
-           role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Title: Infers Transcription Factors from Promoter-Level RNA-seq data.
+Version: 0.0.1
+Authors@R:  c(
+	person(given = "Ning Yuan", family = "Lee", role = "aut", email = "ning@u.duke.nus.edu", comment = c(ORCID = "0000-0002-2258-9851")),
+	person("Greg", "Tucker-Kellogg", role = "cre", email = "dbsgtk@nus.edu.sg", comment = c(ORCID = "0000-0001-8407-9251"))
+	)
+Description: Infers Transcription Factors from Promoter-Level RNA-seq data.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
