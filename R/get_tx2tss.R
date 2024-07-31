@@ -34,7 +34,7 @@
 #' @importFrom assertthat assert_that is.string is.count is.flag
 #' @importFrom dplyr filter select mutate rename
 #' @importFrom fs dir_create path file_exists
-#' @importFrom magrittr %>%
+#' @importFrom magrittr |>
 #' @importFrom readr read_rds write_rds
 #' @importFrom rlang .data
 #' @importFrom rtracklayer import
@@ -57,12 +57,12 @@ get_tx2tss <- function(
   assert_that(is.flag(read_from_cache))
 
   # Does a cache file already exist? Do we read_from_cache?
-  cache_dir <- R_user_dir(packageName(), "cache") %>% dir_create()
+  cache_dir <- R_user_dir(packageName(), "cache") |> dir_create()
   cache_fn <- path(
     cache_dir,
     paste(
       "tx2tss-u", upstream, "-d", downstream, "-",
-      digest(annotation_gtf_file, "md5", serialize=TRUE) %>% substr(1, 8),
+      digest(annotation_gtf_file, "md5", serialize=TRUE) |> substr(1, 8),
       ".rds.gz",
       sep=""))
   if (read_from_cache && file_exists(cache_fn)) {
@@ -75,18 +75,18 @@ get_tx2tss <- function(
   # From annotation_gtf_file, which has about 3 billion records and 27 fields,
   # filter for only transcript records, and only the fields we care about. We
   # end up with about 230,000 records.
-  tx <- annotation_gtf_file %>%  # GTF is 1-based and inclusive at both ends.
-    import() %>%
-    as_tibble() %>%  # also 1-based and inclusive at both ends.
-    filter(.data$type == "transcript") %>%
+  tx <- annotation_gtf_file |>  # GTF is 1-based and inclusive at both ends.
+    import() |>
+    as_tibble() |>  # also 1-based and inclusive at both ends.
+    filter(.data$type == "transcript") |>
     select(
       .data$seqnames, .data$start, .data$end, .data$width, .data$strand,
-      .data$transcript_id) %>%
+      .data$transcript_id) |>
     { GRanges(
         seqnames=.$seqnames, ranges=IRanges(start=.$start, end=.$end),
-        strand=.$strand, mcols=DataFrame(transcript_id=.$transcript_id)) } %>%
+        strand=.$strand, mcols=DataFrame(transcript_id=.$transcript_id)) } |>
     # Get only the 1nt TSS. GenomicRanges::resize is strand-aware.
-    resize(1) %>%
+    resize(1) |>
     # Extend the TSS into (sort-of) promoter regions
     promoters(upstream=upstream, downstream=downstream)
 
@@ -98,14 +98,14 @@ get_tx2tss <- function(
   tx2tss_hits <- findOverlaps(tx, tss)
   tss_ordered <- tss[subjectHits(tx2tss_hits)]
 
-  results <- tx[queryHits(tx2tss_hits)] %>%
-    mcols %>%
-    as_tibble() %>%
-    rename(target_id=.data$mcols.transcript_id) %>%
+  results <- tx[queryHits(tx2tss_hits)] |>
+    mcols |>
+    as_tibble() |>
+    rename(target_id=.data$mcols.transcript_id) |>
     mutate(
       seqnames=paste0("chr", as.character(seqnames(tss_ordered))),
       start=start(tss_ordered), end=end(tss_ordered),
-      strand=as.character(strand(tss_ordered))) %>%
+      strand=as.character(strand(tss_ordered))) |>
     unite("tss_id", "seqnames", "start", "end", "strand", sep=",")
 
   # not save_to_cache => don't save

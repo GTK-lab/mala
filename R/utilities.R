@@ -48,7 +48,7 @@ download_if_url <- function(path) {
 #' @importFrom assertthat assert_that is.string is.dir
 #' @importFrom stringr str_extract
 #' @importFrom utils untar
-extract_if_targz <- function(path) {
+extract_if_targz <- function(path) { 
   assert_that(is.string(path))
 
   is_targz <- grepl("\\.tar\\.gz$", path)
@@ -94,10 +94,10 @@ sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
   assert_that(has_name(sr, mean_obs_col_name))
   assert_that(not_empty(sr))
 
-  sr2 <- sr %>%
-    as_tibble() %>%
-    select(.data$target_id, .data$qval, .env$mean_obs_col_name) %>%
-    filter(!is.na(.data$qval)) %>%
+  sr2 <- sr |>
+    as_tibble() |>
+    select(.data$target_id, .data$qval, .env$mean_obs_col_name) |>
+    filter(!is.na(.data$qval)) |>
     # loci information is encoded in tss_id, which is in the target_id column
     separate(
       .data$target_id, into=c("seqnames", "start", "end", "strand"), sep=",",
@@ -130,10 +130,10 @@ sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
 #' @importFrom IRanges IRanges
 tx2tss2gr <- function(tx2tss) {
   assert_that(not_empty(tx2tss))
-  tx2tss %>%
+  tx2tss |>
     separate(
       .data$tss_id, into=c("seqnames", "start", "end", "strand"), sep=",",
-      convert=TRUE) %>%
+      convert=TRUE) |>
     { GRanges(
       seqnames=.$seqnames, ranges=IRanges(start=.$start, end=.$end),
       strand=.$strand, target_id=.$target_id) }
@@ -154,22 +154,22 @@ tx2tss2gr <- function(tx2tss) {
 #'
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom dplyr group_by summarise n pull
-#' @importFrom magrittr %>%
+#' @importFrom magrittr |>
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
 filter_by_num_overlaps <- function(gr_to_filter, gr_to_overlap, filter_fn) {
-  overlaps <- suppressWarnings(findOverlaps(gr_to_filter, gr_to_overlap)) %>%
-    as_tibble() %>%
+  overlaps <- suppressWarnings(findOverlaps(gr_to_filter, gr_to_overlap)) |>
+    as_tibble() |>
     # Filtering is implicit --- if a row in gr_to_filter does not overlap with
     # gr_to_overlap, then its row index will not be in .data$queryHits.
-    group_by(.data$queryHits) %>%
+    group_by(.data$queryHits) |>
     summarise(num_overlaps=n())
 
   if (nrow(overlaps) == 0) {
     return(GRanges())  # no overlaps to report
   } else {  # otherwise...
-    overlaps_idxs_to_keep <- overlaps %>%
-      pull(.data$num_overlaps) %>%
+    overlaps_idxs_to_keep <- overlaps |>
+      pull(.data$num_overlaps) |>
       filter_fn()
     # NB overlaps_idxs_to_keep is not the same as gr_to_filter_idxs_to_keep.
     # e.g.        overlaps$queryHits == c(11, 29, 37),

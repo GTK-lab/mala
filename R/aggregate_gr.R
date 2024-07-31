@@ -46,7 +46,7 @@
 #' @importFrom assertthat assert_that not_empty has_name
 #' @importFrom dplyr bind_rows mutate select group_by summarise n arrange pull
 #'   row_number
-#' @importFrom magrittr %>%
+#' @importFrom magrittr |>
 #' @importFrom rlang .data
 #' @importFrom stats p.adjust median
 #' @importFrom tibble as_tibble
@@ -68,9 +68,9 @@ aggregate_gr <- function(
     # (Below, GenomicRanges::reduces merges loci to avoid double-counting. I
     # think these overlapping tf2loci regions come about because UniBind bulk
     # mappings draw from many different experiments.)
-    hits <- suppressWarnings(findOverlaps(gr, reduce(tf2loci))) %>%
-      as_tibble() %>%
-      group_by(.data$queryHits) %>%
+    hits <- suppressWarnings(findOverlaps(gr, reduce(tf2loci))) |>
+      as_tibble() |>
+      group_by(.data$queryHits) |>
       summarise(tfs_overlapped=n())
     tfs_overlapped <- rep(0, length(gr))
     tfs_overlapped[hits$queryHits] <- hits$tfs_overlapped
@@ -91,18 +91,18 @@ aggregate_gr <- function(
     })
 
   ## For each TSS-TF filtered overlap, aggregate their p-values.
-  tfs <- grl %>%
+  tfs <- grl |>
     lapply(function(gr_sub) {
         # NAs in gr_sub$qval are ignored by lancaster.
         # If gr_sub is an empty GRanges, gr_sub$qval is null, lancaster gives NA
         pval <- lancaster(gr_sub$qval, weight_fn(mcols(gr_sub)))
         tibble(pval=pval)
-      }) %>%
-    bind_rows() %>%
-    mutate(TF=names(tf2loci)) %>%
-    mutate(qval=p.adjust(.data$pval, "BH")) %>%
-    arrange(.data$pval) %>%
-    mutate(rank=row_number()) %>%
+      }) |>
+    bind_rows() |>
+    mutate(TF=names(tf2loci)) |>
+    mutate(qval=p.adjust(.data$pval, "BH")) |>
+    arrange(.data$pval) |>
+    mutate(rank=row_number()) |>
     select(.data$rank, .data$TF, .data$pval, .data$qval)  # reorder columns
   message()  # just for the newline
 
