@@ -34,7 +34,7 @@
 #' @importFrom assertthat assert_that is.string is.count is.flag
 #' @importFrom dplyr filter select mutate rename
 #' @importFrom fs dir_create path file_exists
-#' @importFrom magrittr |>
+#' @importFrom options opt
 #' @importFrom readr read_rds write_rds
 #' @importFrom rlang .data
 #' @importFrom rtracklayer import
@@ -44,7 +44,7 @@
 #' @importFrom utils packageName
 get_tx2tss <- function(
     upstream=500, downstream=100,
-    annotation_gtf_file="http://ftp.ensembl.org/pub/release-100/gtf/homo_sapiens/Homo_sapiens.GRCh38.100.gtf.gz",
+    gtf_annotation=opt("annotation_gtf"),
     save_to_cache=TRUE,
     overwrite_cache=FALSE,
     read_from_cache=TRUE
@@ -56,8 +56,11 @@ get_tx2tss <- function(
   assert_that(is.flag(overwrite_cache))
   assert_that(is.flag(read_from_cache))
 
-  # Does a cache file already exist? Do we read_from_cache?
-  cache_dir <- R_user_dir(packageName(), "cache") |> dir_create()
+    bfc=BiocFileCache()
+                                        # Does a cache file already exist? Do we read_from_cache?
+
+    rid <- bfcquery(bfc,gtf_annotation,field='fpath',exact=TRUE)$rid
+    cache_dir <- R_user_dir(ifelse(is.character(packageName()),packageName(),"mala"), "cache") |> dir_create()
   cache_fn <- path(
     cache_dir,
     paste(

@@ -129,14 +129,17 @@ sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 tx2tss2gr <- function(tx2tss) {
+    df2gr <- function(df) {
+     GRanges(seqnames=df$seqnames, ranges=IRanges(start=df$start, end=df$end),
+             strand=df$strand, target_id=df$target_id)
+    }
   assert_that(not_empty(tx2tss))
+    
   tx2tss |>
     separate(
       .data$tss_id, into=c("seqnames", "start", "end", "strand"), sep=",",
       convert=TRUE) |>
-    { GRanges(
-      seqnames=.$seqnames, ranges=IRanges(start=.$start, end=.$end),
-      strand=.$strand, target_id=.$target_id) }
+      df2gr()
 }
 
 #' Filter a GRanges object based on its number of overlaps with another

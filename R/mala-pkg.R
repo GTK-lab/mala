@@ -12,3 +12,12 @@ options::define_option(
              default="hg38-robust-damo-20220914",
              option_name="MalaUnibindResource",
              envvar_name="mala_unibind_resource")
+
+
+
+options::define_option(
+             "annotation_gtf",
+             desc="Annotation file location",
+             default="https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/gencode.v46.basic.annotation.gtf.gz",
+             option_name="MalaGtf",
+             envvar_name="mala_annotation_gtf")
