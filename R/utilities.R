@@ -73,7 +73,7 @@ extract_if_targz <- function(path) {
 #'   \code{"mean_obs"}, for sleuth \code{pval_aggregate=TRUE}, this is
 #'   \code{"sum_mean_obs_count"}.
 #'
-#' @return GRanges with qval, mean_obs, and target_id (usually a unique
+#' @return GRanges with qval, mean_obs, and transcript_id (usually a unique
 #'   TSS-associated ID) as metadata.
 #'
 #' @details Rows with \code{NA} qvals are dropped. Whatever values are in the
@@ -89,18 +89,18 @@ extract_if_targz <- function(path) {
 #' @importFrom IRanges IRanges
 sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
 
-  assert_that(has_name(sr, "target_id"))
+  assert_that(has_name(sr, "transcript_id"))
   assert_that(has_name(sr, "qval"))
   assert_that(has_name(sr, mean_obs_col_name))
   assert_that(not_empty(sr))
 
   sr2 <- sr |>
     as_tibble() |>
-    select(.data$target_id, .data$qval, .env$mean_obs_col_name) |>
+    select(.data$transcript_id, .data$qval, .env$mean_obs_col_name) |>
     filter(!is.na(.data$qval)) |>
-    # loci information is encoded in tss_id, which is in the target_id column
+    # loci information is encoded in tss_id, which is in the transcript_id column
     separate(
-      .data$target_id, into=c("seqnames", "start", "end", "strand"), sep=",",
+      .data$transcript_id, into=c("seqnames", "start", "end", "strand"), sep=":",
       remove=FALSE, convert=TRUE)
 
   # The piping breaks here, because it is difficult to continue with a column
@@ -109,7 +109,7 @@ sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
     seqnames=sr2$seqnames,
     ranges=IRanges(sr2$start, sr2$end),
     strand=sr2$strand,
-    tss_id=sr2$target_id,
+    tss_id=sr2$transcript_id,
     qval=sr2$qval,
     mean_obs=pull(sr2[, mean_obs_col_name]))
 
@@ -122,7 +122,7 @@ sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
 #'
 #' @param tx2tss tibble from get_tx2tss
 #'
-#' @return GRanges object with metadata column target_id.
+#' @return GRanges object with metadata column transcript_id.
 #' @importFrom assertthat assert_that not_empty
 #' @importFrom rlang .data
 #' @importFrom tidyr separate
@@ -131,13 +131,13 @@ sr2gr <- function(sr, mean_obs_col_name="mean_obs") {
 tx2tss2gr <- function(tx2tss) {
     df2gr <- function(df) {
      GRanges(seqnames=df$seqnames, ranges=IRanges(start=df$start, end=df$end),
-             strand=df$strand, target_id=df$target_id)
+             strand=df$strand, transcript_id=df$transcript_id)
     }
   assert_that(not_empty(tx2tss))
     
   tx2tss |>
     separate(
-      .data$tss_id, into=c("seqnames", "start", "end", "strand"), sep=",",
+      .data$tss_id, into=c("seqnames", "start", "end", "strand"), sep=":",
       convert=TRUE) |>
       df2gr()
 }
@@ -157,7 +157,6 @@ tx2tss2gr <- function(tx2tss) {
 #'
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom dplyr group_by summarise n pull
-#' @importFrom magrittr |>
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
 filter_by_num_overlaps <- function(gr_to_filter, gr_to_overlap, filter_fn) {
